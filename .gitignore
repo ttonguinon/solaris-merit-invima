@@ -1,0 +1,17 @@
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Temporales de Office al editar el banco
+~$*.xlsx
+*.tmp
+
+# Copias locales
+*.bak
+/backup/

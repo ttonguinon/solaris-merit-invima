@@ -1,0 +1,18 @@
+{
+  "name": "Solaris Merit · Simulador CNSC",
+  "short_name": "Solaris Merit",
+  "description": "Simulador de práctica para las pruebas escritas del concurso Entidades del Orden Nacional 2026 (Invima y Fondo Nacional de Estupefacientes), nivel profesional.",
+  "lang": "es-CO",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0A1630",
+  "theme_color": "#0E1E40",
+  "categories": ["education"],
+  "icons": [
+    { "src": "marca/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "marca/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "marca/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
