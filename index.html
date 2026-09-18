@@ -124,6 +124,13 @@ td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .modal-caja{background:var(--card);border:2px solid var(--line);border-radius:20px;padding:20px 18px;max-width:640px;width:100%;max-height:90vh;overflow:auto;position:relative}
 .modal-caja::before{content:"";position:absolute;left:0;right:0;top:0;height:7px;background:linear-gradient(90deg,#E63946,#F28C1B,#E0A800,#6FA80F,#2A9D8F,#00A6ED,#6A4C93,#C0399F);border-radius:20px 20px 0 0}
 .modal-caja h2{margin-top:6px}
+.instalar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;justify-content:space-between;margin:12px 0 16px;padding:14px;border-radius:16px;
+  background:linear-gradient(135deg,rgba(255,181,71,.16),rgba(61,139,255,.12));border:2px solid rgba(255,181,71,.4)}
+.instalar[hidden]{display:none}
+.instalar .ins-txt{flex:1;min-width:190px;line-height:1.35}
+.instalar .ins-txt b{display:block;font-family:var(--display);font-size:1.05rem;color:var(--gold)}
+.instalar .ins-txt span{font-size:.9rem;color:var(--ink-soft)}
+.instalar.solo-texto .btn{display:none}
 .lista{margin:0;padding-left:18px}
 .lista li{margin:7px 0;font-size:.95rem}
 .chk{display:flex;align-items:center;gap:8px;margin-top:14px;font-weight:700}
@@ -265,6 +272,10 @@ th{color:#C6A8F0}
 <div id="bienvenida" class="modal" hidden>
   <div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="bvTit">
     <h2 id="bvTit">Cómo funciona</h2>
+    <div id="instalar" class="instalar" hidden>
+      <div class="ins-txt"><b>Instala Solaris Merit</b><span id="insMsg">Queda como una app en tu pantalla de inicio y funciona sin internet.</span></div>
+      <button class="btn sun" id="insBtn">📲 Instalar la app</button>
+    </div>
     <div class="facts">
       <div class="fact"><b>Juicio situacional</b>Cada caso describe una situación laboral y trae tres enunciados, cada uno con tres opciones. Se mide aplicación de conocimientos, no memoria.</div>
       <div class="fact sun"><b>Mismo día, misma hora</b>Funcionales y comportamentales se presentan juntas. Aquí eliges el tamaño del simulacro y si quieres modo práctica o cronómetro.</div>
@@ -988,7 +999,30 @@ function vRes(){
 }
 
 const modal=document.getElementById("bienvenida");
-function abrirBienvenida(){ document.getElementById("bvNo").checked = S.bvNoMostrar!==false; modal.hidden=false; }
+/* ---- instalación en el dispositivo ---- */
+let promptInstalar=null;
+const cajaIns=document.getElementById("instalar"), msgIns=document.getElementById("insMsg"), btnIns=document.getElementById("insBtn");
+const yaInstalada=()=>window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone===true;
+const esIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent);
+function pintarInstalar(){
+  if(yaInstalada()){ cajaIns.hidden=true; return; }
+  if(promptInstalar){ cajaIns.hidden=false; cajaIns.classList.remove("solo-texto");
+    msgIns.textContent="Queda como una app en tu pantalla de inicio y funciona sin internet."; return; }
+  if(esIOS()){ cajaIns.hidden=false; cajaIns.classList.add("solo-texto");
+    msgIns.textContent="En iPhone: toca Compartir y luego «Agregar a pantalla de inicio»."; return; }
+  cajaIns.hidden=false; cajaIns.classList.add("solo-texto");
+  msgIns.textContent="Desde el menú del navegador elige «Instalar aplicación» o «Agregar a la pantalla de inicio».";
+}
+window.addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); promptInstalar=e; pintarInstalar(); });
+window.addEventListener("appinstalled",()=>{ promptInstalar=null; cajaIns.hidden=true; sonFinal(); });
+btnIns.onclick=async()=>{
+  if(!promptInstalar) return;
+  promptInstalar.prompt();
+  const r=await promptInstalar.userChoice.catch(()=>null);
+  if(r&&r.outcome==="accepted"){ cajaIns.hidden=true; }
+  promptInstalar=null;
+};
+function abrirBienvenida(){ document.getElementById("bvNo").checked = S.bvNoMostrar!==false; pintarInstalar(); modal.hidden=false; }
 function cerrarBienvenida(){ S.bvNoMostrar = document.getElementById("bvNo").checked; S.bvVisto=true; save(); modal.hidden=true; }
 document.getElementById("bvOk").onclick=cerrarBienvenida;
 modal.addEventListener("click",e=>{ if(e.target===modal) cerrarBienvenida(); });

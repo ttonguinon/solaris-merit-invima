@@ -49,7 +49,7 @@ Además: modo práctica o simulacro con cronómetro, contrarreloj de 10 pregunta
 4. Sube también los archivos de repositorio: `.nojekyll`, `manifest.webmanifest`, `sw.js`, `404.html`, `robots.txt`, `sitemap.xml`, `LICENSE` y `.gitignore`.
 5. Edita `robots.txt` y `sitemap.xml` con la URL real de tu repositorio.
 
-Con el `sw.js` la app queda instalable: en el celular aparece "Agregar a la pantalla de inicio" y luego abre a pantalla completa y funciona sin internet. El banco se intenta leer siempre de la red y, si no hay señal, usa la última copia guardada.
+La ventana de bienvenida trae arriba el botón **📲 Instalar la app** (en iPhone muestra la instrucción de Safari, que no permite instalar con un botón). Con el `sw.js` la app queda instalable: en el celular aparece "Agregar a la pantalla de inicio" y luego abre a pantalla completa y funciona sin internet. El banco se intenta leer siempre de la red y, si no hay señal, usa la última copia guardada.
 
 ## Códigos QR
 
