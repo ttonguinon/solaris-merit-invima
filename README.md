@@ -25,10 +25,10 @@ Simulador de práctica para las pruebas escritas del proceso de selección **Ent
 
 ## El banco
 
-420 preguntas funcionales en 140 casos y 80 situaciones comportamentales.
+550 preguntas funcionales (536 activas) y 138 situaciones comportamentales. 130 funcionales y 58 situaciones provienen del paquete transversal del simulador del hospital, reescritas y ambientadas; 14 quedaron desactivadas (activa = NO) por depender del sector hospitalario.
 
-- **Pool Invima:** 255 preguntas (comunes + Invima).
-- **Pool Estupefacientes:** 231 preguntas (comunes + FNE).
+- **Pool Invima:** 410 preguntas (comunes + Invima).
+- **Pool Estupefacientes:** 377 preguntas (comunes + FNE).
 - **Ejes:** atención al ciudadano y derecho de petición, transparencia, MIPG y control interno, contratación y supervisión, ética y conflicto de interés, régimen disciplinario, acciones constitucionales, carrera administrativa, talento humano, gestión documental, protección de datos, precisión jurídica del verbo, y los propios de cada entidad (IVC sanitaria, sancionatorio, alimentos, medicamentos, dispositivos, cosméticos, carne, importaciones, bebidas alcohólicas; monopolio del Estado, control especial, comercio internacional, almacenamiento, presupuesto).
 
 ## Cómo funciona la app
@@ -39,7 +39,7 @@ Simulador de práctica para las pruebas escritas del proceso de selección **Ent
 4. **Comportamentales:** competencias del Decreto 815 de 2018.
 5. **Resultado:** puntaje ponderado (60 / 20 / 20), aciertos por eje, revisión con explicación, "por qué no las otras" y soporte normativo, y diploma descargable si aprueba.
 
-Además: modo práctica o simulacro con cronómetro, contrarreloj de 10 preguntas, racha diaria, gráfica de puntajes, dominio por eje, enlaces oficiales del concurso y celebraciones con sonido y confeti. Todo se guarda en el dispositivo, por concurso, sin cuentas.
+Además: selector de dificultad (básica, media, alta), entrenamiento de ejes débiles, modo repaso de nivel básico, barra con Efectos y Reiniciar, modo práctica o simulacro con cronómetro, contrarreloj de 10 preguntas, racha diaria, gráfica de puntajes, dominio por eje, enlaces oficiales del concurso y celebraciones con sonido y confeti. Todo se guarda en el dispositivo, por concurso, sin cuentas.
 
 ## Publicar en GitHub Pages
 
@@ -65,7 +65,8 @@ Si tu repositorio queda con otra dirección, abre `qr.html` (también funciona p
 
 1. Descarga `banco-preguntas.xlsx`, edítalo y súbelo con el mismo nombre (**Add file → Upload files**).
 2. La app toma el banco nuevo al abrirse. En la pantalla inicial se ve si usa el Excel o la copia incorporada.
-3. Reglas: no cambies nombres de hojas ni encabezados. `respuesta` es A, B o C; `activa` en NO oculta una pregunta sin borrarla; un caso son tres filas con el mismo `caso_id`. La columna `porque_no` explica por qué las otras dos opciones no sirven y `fuente` cita la norma.
+3. La hoja Comportamentales tiene dos columnas nuevas: `consigna` (la pregunta que se muestra) e `invertida` (SI cuando se pregunta cuál conducta NO adoptaría; en esas, los 3 puntos van a la conducta que no debe elegirse).
+4. Reglas: no cambies nombres de hojas ni encabezados. `respuesta` es A, B o C; `activa` en NO oculta una pregunta sin borrarla; un caso son tres filas con el mismo `caso_id`. La columna `dificultad` (Basica, Media o Alta) alimenta el selector de dificultad; la clasificación inicial es automática y puede corregirse a mano en el Excel. La columna `porque_no` explica por qué las otras dos opciones no sirven y `fuente` cita la norma.
 
 ## Avisos
 
