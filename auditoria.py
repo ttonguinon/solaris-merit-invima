@@ -134,6 +134,14 @@ def _justo(score):
         nn+=1; sc={L:score(v) for L,v in op.items()}; m=max(sc.values()); top=[L for L in sc if sc[L]==m]
         acc+=(1/len(top)) if kk in top else 0
     return acc/max(1,nn)*100
+_pos={"más larga":0,"longitud media":0,"más corta":0}
+for d in filas:
+    _op={L:str(d[L]) for L in "abc"}; _k=str(d["respuesta"]).strip().lower()
+    if _k not in _op: continue
+    _o=sorted("abc", key=lambda x: len(_op[x]))
+    _pos["más corta"]+= _o[0]==_k; _pos["longitud media"]+= _o[1]==_k; _pos["más larga"]+= _o[2]==_k
+print("\n=== REPARTO POR LONGITUD · la correcta debe caer en cada posición cerca del 33 % ===")
+for _t,_v in _pos.items(): print(f"{('La correcta es la '+_t):52} {_v/max(1,len(filas))*100:8.1f} %   30-37 %")
 print("\n=== PRUEBA DE PISTAS · acierto sin estudiar (azar = 33,3 %) ===")
 for _t,_f in [("Marcar la más larga",len),("Marcar la más corta",lambda t:-len(t)),
               ("Marcar la que junta dos acciones",lambda t:1 if re.search(r"\by\b|,",t) else 0),
@@ -153,6 +161,23 @@ print(f"{'Longitud media de la situación':52} {st.mean(largos):9.0f} c   180-32
 print(f"{'Consignas distintas en uso':52} {len(cons):>10}   3 o más")
 print(f"{'Consigna más repetida':52} {max(cons.values())/max(1,m)*100:8.1f} %   < 60 %")
 print(f"{'Situaciones con consigna invertida':52} {pm(inv):>10}   10-20 %")
+_ops=[str(d[L]) for d in comp for L in "abc"]
+_pt=sum(1 for t in _ops if t.strip().endswith("."))
+_mi=sum(1 for t in _ops if t[:1].islower())
+def _norm(t):
+    import unicodedata as _u
+    z=_u.normalize("NFD",str(t).lower()); return "".join(c for c in z if _u.category(c)!="Mn")
+def _cola(t,k):
+    p=re.findall(r"[a-z0-9]+", _norm(t)); return " ".join(p[-k:]) if len(p)>=k else None
+_c=Counter()
+for t in _ops:
+    for k in (4,5,6):
+        x=_cola(t,k)
+        if x: _c[x]+=1
+_rep=sum(1 for x,v in _c.items() if v>=6)
+print(f"{'Opciones que terminan en punto':52} {_pt:>10}   0")
+print(f"{'Opciones que empiezan en minúscula':52} {_mi:>10}   0")
+print(f"{'Coletillas repetidas en 6 o más opciones':52} {_rep:>10}   0")
 
 print("\n=== ALERTAS POR ID ===")
 for k, tit in [("larga","Correcta más larga"),("absoluto","Absolutos en distractor"),

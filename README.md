@@ -66,7 +66,7 @@ Si tu repositorio queda con otra dirección, abre `qr.html` (también funciona p
 1. Descarga `banco-preguntas.xlsx`, edítalo y súbelo con el mismo nombre (**Add file → Upload files**).
 2. La app toma el banco nuevo al abrirse. En la pantalla inicial se ve si usa el Excel o la copia incorporada.
 3. La hoja Comportamentales tiene dos columnas nuevas: `consigna` (la pregunta que se muestra) e `invertida` (SI cuando se pregunta cuál conducta NO adoptaría; en esas, los 3 puntos van a la conducta que no debe elegirse).
-4. Reglas: no cambies nombres de hojas ni encabezados. `respuesta` es A, B o C; `activa` en NO oculta una pregunta sin borrarla; un caso son tres filas con el mismo `caso_id`. La columna `dificultad` (Basica, Media o Alta) alimenta el selector de dificultad; la clasificación inicial es automática y puede corregirse a mano en el Excel. La columna `porque_no` explica por qué las otras dos opciones no sirven y `fuente` cita la norma.
+4. Reglas: no cambies nombres de hojas ni encabezados. `respuesta` es A, B o C; `activa` en NO oculta una pregunta sin borrarla; un caso son tres filas con el mismo `caso_id`. La columna `componente` marca cada pregunta como Aptitudes (lectura crítica, razonamiento cuantitativo, análisis de información y ofimática, sin norma de respaldo), Básico (ejes transversales del Estado, comunes a las dos entidades) o Específico (normas propias del Invima o del Fondo), y alimenta el selector de componente de la app. La columna `dificultad` (Basica, Media o Alta) alimenta el selector de dificultad; la clasificación inicial es automática y puede corregirse a mano en el Excel. La columna `porque_no` explica por qué las otras dos opciones no sirven y `fuente` cita la norma.
 
 ## Avisos
 
