@@ -412,7 +412,7 @@ const MIN_FUNC = 65;
    Fuente principal: banco-preguntas.xlsx en el mismo repositorio (GitHub Pages).
    Si no se puede leer, se usa la copia incorporada abajo. */
 const BANCO_URL = "banco-preguntas.xlsx";
-const TAMANOS = {corto:{casos:8,comp:8,nombre:"24 preguntas · unos 30 minutos"}, estandar:{casos:12,comp:12,nombre:"36 preguntas · unos 45 minutos"}, largo:{casos:20,comp:20,nombre:"60 preguntas · unos 75 minutos"}};
+const TAMANOS = {corto:{preg:30,comp:10,nombre:"30 preguntas · unos 40 minutos"}, estandar:{preg:60,comp:20,nombre:"60 preguntas · unos 75 minutos"}, largo:{preg:120,comp:30,nombre:"120 preguntas · unas 2 horas y media"}, completo:{preg:9999,comp:9999,nombre:"Todo el banco · todas las preguntas, sin reloj"}};
 const tam = ()=>TAMANOS[S.tam]||TAMANOS.estandar;
 const CONCURSOS = {
   invima:{corto:"Invima", nombre:"Instituto Nacional de Vigilancia de Medicamentos y Alimentos", proceso:"2801", acuerdo:"Acuerdo 80 de 2026",
@@ -486,7 +486,7 @@ async function cargarBanco(){
 /* ============ Estado ============ */
 const DEF = {step:0, maxStep:0, perfil:{nombre:"",empleo:"",exp:"EPR",meses:24,reserva:"no",posgradoReq:"ninguno"}, perfilOk:false,
   ant:{pregrados:0,esp:0,mae:0,doc:0,horas:0,etdhA:0,etdhL:0,mesesEPR:0,mesesEP:0},
-  fa:{}, ca:{}, qi:0, ci:0, t0:null, practica:true, tam:"estandar", bvVisto:false, bvNoMostrar:true, sonido:true, historial:[], racha:{ultimo:"",dias:0,mejor:0}, dominio:{}, crMejor:0, dif:"todas", comp:"todos", modo:"normal"};
+  fa:{}, ca:{}, qi:0, ci:0, t0:null, practica:true, tam:"estandar", bvVisto:false, bvNoMostrar:true, sonido:true, historial:[], racha:{ultimo:"",dias:0,mejor:0}, dominio:{}, crMejor:0, dif:"todas", comp:"todos", modo:"normal", vistas:{}, vistasK:{}};
 let CUR = (()=>{try{return localStorage.getItem("simcnsc_actual")||"invima"}catch(e){return "invima"}})();
 if(!CONCURSOS[CUR]) CUR="invima";
 let S = load();
@@ -543,18 +543,51 @@ function poolFiltrado(){
 }
 function nuevaSesion(){
   const pool=poolFiltrado();
-  const T=S.modo==="repaso"?{casos:24,comp:8}:tam(), nCom=Math.round(T.casos*0.4);
-  const com=elegir(pool.filter(c=>c.grupo==="comun"),nCom);
-  let esp=elegir(pool.filter(c=>c.grupo!=="comun"),T.casos-com.length);
-  if(com.length+esp.length<T.casos){ const usados=new Set([...com,...esp].map(c=>c.id)); esp=esp.concat(elegir(pool.filter(c=>!usados.has(c.id)),T.casos-com.length-esp.length)); }
-  const casos=[...com,...esp];
+  S.vistas=S.vistas||{}; S.vistasK=S.vistasK||{};
+  const visto=c=>c.items.some(it=>S.vistas[it.id]);
+  const T=S.modo==="repaso"?{preg:72,comp:8}:tam();
+  let aviso="";
+  // se prefieren los casos que nunca has visto; si se agotan, se reinicia el recorrido
+  let frescos=pool.filter(c=>!visto(c));
+  const pedidas=S.tam==="completo"?1e9:T.preg;
+  const disponibles=frescos.reduce((s,c)=>s+c.items.length,0);
+  if(S.modo!=="repaso" && disponibles<Math.min(pedidas,pool.reduce((s,c)=>s+c.items.length,0))){
+    if(disponibles===0){ S.vistas={}; frescos=pool.slice(); aviso="Recorriste todas las preguntas disponibles: el recorrido empieza de nuevo."; }
+    else aviso=`Quedan ${disponibles} preguntas sin ver: este ejercicio las toma todas y luego el recorrido se reinicia.`;
+  }
+  const armar=(lista,tope)=>{
+    const out=[]; let n=0;
+    for(const c of lista){ if(n>=tope) break; if(n+c.items.length<=tope){ out.push(c); n+=c.items.length; } }
+    if(!out.length && lista.length){ out.push(lista[0]); }
+    return out;
+  };
+  let casos;
+  if(S.tam==="completo" && S.modo!=="repaso"){ casos=shuffle(frescos); }
+  else {
+    const mezcla=shuffle(frescos);
+    const comun=mezcla.filter(c=>c.grupo==="comun"), prop=mezcla.filter(c=>c.grupo!=="comun");
+    const objetivo=S.modo==="repaso"?T.preg:T.preg;
+    const parteComun=armar(comun,Math.round(objetivo*0.4));
+    const usados=new Set(parteComun.map(c=>c.id));
+    const resto=armar(prop.concat(comun.filter(c=>!usados.has(c.id))),objetivo-parteComun.reduce((s,c)=>s+c.items.length,0));
+    casos=shuffle([...parteComun,...resto]);
+  }
   const nq=casos.reduce((s,c)=>s+c.items.length,0);
-  if(S.modo==="repaso"){ S.aviso=`El banco de repaso tiene ${nq} preguntas: aquí están todas.`; }
-  else if(casos.length<T.casos){ const N={Basica:"Fácil",Media:"Normal",Alta:"Difícil"}; S.aviso=`${S.modo==="debiles"?"Tus ejes débiles tienen":"El nivel "+(N[S.dif]||S.dif)+" tiene"} ${casos.length} casos disponibles: este simulacro queda de ${nq} preguntas en lugar de ${T.casos*3}.`; }
-  const perm={}; casos.forEach(c=>c.items.forEach(it=>perm[it.id]=shuffle([0,1,2])));
-  const porK=new Map(); shuffle(BANCO.comportamentales).forEach(k=>{ if(!porK.has(k.competencia)) porK.set(k.competencia,[]); porK.get(k.competencia).push(k); });
+  if(S.modo==="repaso") aviso=`El banco de repaso tiene ${nq} preguntas: aquí están todas.`;
+  else if(S.tam==="completo") aviso=`Banco completo: ${nq} preguntas funcionales y todas las situaciones. Tu avance se guarda, puedes salir y volver.`;
+  else if(!aviso && nq<T.preg){ const N={Basica:"Fácil",Media:"Normal",Alta:"Difícil"};
+    aviso=`${S.modo==="debiles"?"Tus ejes débiles tienen":"Este filtro tiene"} ${nq} preguntas disponibles: el ejercicio queda de ese tamaño.`; }
+  S.aviso=aviso;
+  const perm={}; casos.forEach(c=>c.items.forEach(it=>{ perm[it.id]=shuffle([0,1,2]); }));
+  // comportamentales: también sin repetir, repartidas entre competencias
+  const activas=BANCO.comportamentales.filter(k=>(k.activa||"SI").toUpperCase()!=="NO");
+  let frescasK=activas.filter(k=>!S.vistasK[k.id]);
+  const topeK=S.tam==="completo"?activas.length:tam().comp;
+  if(frescasK.length<topeK){ S.vistasK={}; frescasK=activas.slice(); }
+  const porK=new Map(); shuffle(frescasK).forEach(k=>{ if(!porK.has(k.competencia)) porK.set(k.competencia,[]); porK.get(k.competencia).push(k); });
   const comp=[]; const ks=shuffle([...porK.keys()]);
-  while(comp.length<tam().comp && ks.some(k=>porK.get(k).length)){ for(const k of ks){ if(comp.length>=tam().comp) break; const x=porK.get(k).shift(); if(x) comp.push(x.id); } }
+  while(comp.length<topeK && ks.some(k=>porK.get(k).length)){ for(const k of ks){ if(comp.length>=topeK) break; const x=porK.get(k).shift(); if(x) comp.push(x.id); } }
+  if(S.tam==="completo") S.practica=true;
   S.sesion={casos:casos.map(c=>c.id),perm,comp:shuffle(comp),n:(S.sesion?.n||0)+1};
   S.fa={}; S.ca={}; S.qi=0; S.ci=0; S.t0=null;
 }
@@ -832,7 +865,8 @@ function vEmpleo(){
   <h3>Ejes temáticos del banco</h3>
   <p class="version-banco">Versión del banco: <b>${esc((BANCO.version&&BANCO.version.version)||"sin versión")}</b> · huella <b>${esc((BANCO.version&&BANCO.version.huella)||"—")}</b> <span>(${ORIGEN})</span></p>
   <p class="lead">Banco: ${BANCO.funcionales.filter(r=>(r.concurso==="comun"||r.concurso===CUR)&&r.tipo!=="repaso").length} preguntas funcionales para simulacros, ${BANCO.funcionales.filter(r=>(r.concurso==="comun"||r.concurso===CUR)&&r.tipo==="repaso").length} de repaso (${BANCO.funcionales.filter(r=>(r.concurso==="comun"||r.concurso===CUR)&&r.tipo!=="repaso"&&r.comp==="Aptitudes").length} de aptitudes, ${BANCO.funcionales.filter(r=>(r.concurso==="comun"||r.concurso===CUR)&&r.tipo!=="repaso"&&r.comp==="Básico").length} de normativo transversal) y ${BANCO.comportamentales.length} situaciones comportamentales. Cada simulacro toma casos al azar repartidos entre ejes y cambia el orden de las opciones.</p>
-  <div class="field"><label for="tam">Tamaño del próximo simulacro</label><select id="tam">${Object.entries(TAMANOS).map(([k,v])=>`<option value="${k}" ${S.tam===k?"selected":""}>${v.nombre} y ${v.comp} comportamentales</option>`).join("")}</select><small>Se aplica al empezar un simulacro nuevo.</small></div>
+  <div class="field"><label for="tam">Tamaño del próximo simulacro</label><select id="tam">${Object.entries(TAMANOS).map(([k,v])=>`<option value="${k}" ${S.tam===k?"selected":""}>${k==="completo"?v.nombre:v.nombre+" y "+v.comp+" comportamentales"}</option>`).join("")}</select><small>Se aplica al empezar un ejercicio nuevo. Las preguntas no se repiten entre ejercicios: ${(()=>{const p=poolFiltrado(),v=S.vistas||{};const t=p.reduce((s,c)=>s+c.items.length,0);const q=p.filter(c=>!c.items.some(it=>v[it.id])).reduce((s,c)=>s+c.items.length,0);return q===t?`tienes las ${t} disponibles`:`te faltan ${q} de ${t}`;})()}. «Todo el banco» las recorre todas de una, sin reloj.</small>
+  <div class="btns" style="margin-top:8px"><button class="btn ghost" id="reRec">↺ Volver a empezar el recorrido</button></div></div>
   <div class="field"><label for="dif">Dificultad de las funcionales</label><select id="dif">
     ${[["todas","Todas las dificultades"],["Basica","Fácil"],["Media","Normal"],["Alta","Difícil"]].map(([v,n])=>`<option value="${v}" ${S.dif===v?"selected":""}>${n}</option>`).join("")}
   </select><small>Se aplica al empezar un simulacro nuevo.</small></div>
@@ -849,7 +883,8 @@ function vEmpleo(){
   <div class="btns"><button class="btn sun" id="next">Guardar y seguir →</button>${Object.keys(S.fa).length?`<button class="btn ghost" id="nuevo0">Empezar un simulacro nuevo</button>`:""}</div>`;
   $("#tam").onchange=e=>{S.tam=e.target.value;save();};
   $("#dif").onchange=e=>{S.dif=e.target.value;save();};
-  $("#comp").onchange=e=>{S.comp=e.target.value;save();};
+  $("#comp").onchange=e=>{S.comp=e.target.value;save();vEmpleo();};
+  if($("#reRec")) $("#reRec").onclick=()=>{ S.vistas={}; S.vistasK={}; save(); vEmpleo(); };
   const arrancar=(modo)=>{ S.modo=modo; if(modo==="repaso") S.practica=true; S.fa={}; S.ca={}; S.qi=0; S.ci=0; S.t0=Date.now(); nuevaSesion(); buildFlat(); save(); go(2); };
   if($("#goDeb")) $("#goDeb").onclick=()=>arrancar("debiles");
   $("#goRep").onclick=()=>arrancar("repaso");
@@ -941,10 +976,10 @@ function vFunc(){ if(!FLAT.length){ go(0); return; } if(S.qi==null||S.qi<0||S.qi
   ${answered<FLAT.length?`<p class="lead" style="margin-top:10px">Respondidas ${answered} de ${FLAT.length}. Una pregunta sin respuesta cuenta como incorrecta, igual que en la prueba real.</p>`:""}`;
   startTick();
   $("#prac").onchange=e=>{S.practica=e.target.checked;save();vFunc();};
-  if($("#verResp")) $("#verResp").onclick=()=>{ S.fa[it.id]=-1; save(); vFunc(); };
+  if($("#verResp")) $("#verResp").onclick=()=>{ S.fa[it.id]=-1; S.vistas=S.vistas||{}; S.vistas[it.id]=1; save(); vFunc(); };
   app.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ if(S.fa[it.id]!=null) return;
     const bien=(+b.dataset.k)===it.c;
-    S.fa[it.id]=+b.dataset.k; save();
+    S.fa[it.id]=+b.dataset.k; S.vistas=S.vistas||{}; S.vistas[it.id]=1; save();
     if(S.practica){ bien?sonAcierto():sonFallo(); }
     vFunc();
     if(S.practica&&bien){ const sel=app.querySelector(".opt.sel"); if(sel){ const s=document.createElement("span"); s.className="bravo"; s.textContent=["¡Bien!","¡Correcta!","¡Vas bien!","¡Exacto!"][(Math.random()*4)|0]; sel.appendChild(s);} }
@@ -976,7 +1011,7 @@ function vComp(){
     <button class="btn sun" id="fin" ${answered<SCOMP.length?"disabled":""}>Ver mi puntaje</button>
   </div>`;
   startTick();
-  app.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ if(S.ca[it.id]!=null) return; S.ca[it.id]=+b.dataset.k; pip([520,700],0.08,"triangle",0.05); save(); vComp(); });
+  app.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{ if(S.ca[it.id]!=null) return; S.ca[it.id]=+b.dataset.k; S.vistasK=S.vistasK||{}; S.vistasK[it.id]=1; pip([520,700],0.08,"triangle",0.05); save(); vComp(); });
   app.querySelectorAll("[data-sig]").forEach(b=>b.onclick=()=>{ if(i<SCOMP.length-1){ S.ci=i+1; save(); vComp(); window.scrollTo({top:0,behavior:"smooth"}); } else go(4); });
   app.querySelectorAll(".dot").forEach(b=>b.onclick=()=>{S.ci=+b.dataset.j;save();vComp();});
   $("#prev").onclick=()=>{S.ci--;save();vComp();};
