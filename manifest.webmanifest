@@ -31,5 +31,10 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "id": "/solaris-merit-invima/",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
   ]
 }
