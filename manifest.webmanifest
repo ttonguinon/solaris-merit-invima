@@ -1,6 +1,6 @@
 {
-  "name": "Solaris Merit Invima",
-  "short_name": "Solaris Merit Invima",
+  "name": "Solaris Invima-DNE",
+  "short_name": "Solaris Invima-DNE",
   "description": "Simulador de práctica para las pruebas escritas del concurso Entidades del Orden Nacional 2026 (Invima y Fondo Nacional de Estupefacientes), nivel profesional.",
   "lang": "es-CO",
   "start_url": "./index.html",
