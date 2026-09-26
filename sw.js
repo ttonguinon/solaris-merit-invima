@@ -1,7 +1,7 @@
 /* Solaris Merit · service worker
    Estrategia: red primero y caché de respaldo, para que el banco de preguntas
    siempre se intente leer actualizado pero la app funcione sin internet. */
-const CACHE = "solaris-merit-v28";
+const CACHE = "solaris-merit-v29";
 const BASICOS = ["./", "./index.html", "./banco-preguntas.xlsx", "./manifest.webmanifest",
   "./marca/icon-192.png", "./marca/icon-512.png"];
 

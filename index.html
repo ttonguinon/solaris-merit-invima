@@ -136,6 +136,9 @@ td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .instalar .ins-txt b{display:block;font-family:var(--display);font-size:1.05rem;color:var(--gold)}
 .instalar .ins-txt span{font-size:.9rem;color:var(--ink-soft)}
 .instalar.solo-texto .btn{display:none}
+.tool-ins{background:linear-gradient(135deg,#2A9D8F,#00A6ED)}
+.ins-abierta{display:block}
+.ins-abierta .ins-txt span{display:block;margin-top:8px;line-height:1.5}
 .lista{margin:0;padding-left:18px}
 .lista li{margin:7px 0;font-size:.95rem}
 .chk{display:flex;align-items:center;gap:8px;margin-top:14px;font-weight:700}
@@ -389,7 +392,8 @@ th{color:#C6A8F0}
     <button id="infoTop" class="tool t-info">ℹ️ Cómo funciona</button>
     <button id="efectos" class="tool t-efectos">🔊 Efectos</button>
     <button id="reiniciar" class="tool t-reset">↺ Reiniciar todo</button>
-    <button id="crTop" class="tool t-cr">⚡ Contrarreloj</button>
+    <button id="insTop" class="tool tool-ins" hidden>📲 Instalar</button>
+  <button id="crTop" class="tool t-cr">⚡ Contrarreloj</button>
   </div>
   <div class="chips" id="sel" role="group" aria-label="Concurso"></div>
   <div id="linksBar"></div>
@@ -1129,25 +1133,40 @@ function mostrarReinicio(){
   const d=document.createElement("div"); d.className="franja-ok"; d.textContent="Listo: se reinició todo.";
   document.querySelector(".herramientas").after(d); setTimeout(()=>d.remove(),6000);
 }
+const btnTopIns=document.getElementById("insTop");
 document.getElementById("crTop").onclick=()=>iniciarCR();
+if(btnTopIns) btnTopIns.onclick=()=>{ if(promptInstalar){ btnIns.click(); } else { abrirBienvenida(); setTimeout(()=>btnIns.click(),60); } };
 /* ---- instalación en el dispositivo ---- */
 let promptInstalar=null;
 const cajaIns=document.getElementById("instalar"), msgIns=document.getElementById("insMsg"), btnIns=document.getElementById("insBtn");
 const yaInstalada=()=>window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone===true;
 const esIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent);
 function pintarInstalar(){
-  if(yaInstalada()){ cajaIns.hidden=true; return; }
-  if(promptInstalar){ cajaIns.hidden=false; cajaIns.classList.remove("solo-texto");
-    msgIns.textContent="Queda como una app en tu pantalla de inicio y funciona sin internet."; return; }
-  if(esIOS()){ cajaIns.hidden=false; cajaIns.classList.add("solo-texto");
-    msgIns.textContent="En iPhone: toca Compartir y luego «Agregar a pantalla de inicio»."; return; }
-  cajaIns.hidden=false; cajaIns.classList.add("solo-texto");
-  msgIns.textContent="Desde el menú del navegador elige «Instalar aplicación» o «Agregar a la pantalla de inicio».";
+  if(yaInstalada()){ cajaIns.hidden=true; if(btnTopIns) btnTopIns.hidden=true; return; }
+  cajaIns.hidden=false; cajaIns.classList.remove("solo-texto");
+  if(btnTopIns) btnTopIns.hidden=false;
+  if(promptInstalar){
+    msgIns.textContent="Queda como una app en tu pantalla de inicio y funciona sin internet.";
+    btnIns.textContent="📲 Instalar la app";
+  }else if(esIOS()){
+    msgIns.textContent="En iPhone: toca el botón Compartir, abajo en Safari, y elige «Agregar a pantalla de inicio».";
+    btnIns.textContent="📲 Ver cómo instalarla";
+  }else{
+    msgIns.textContent="Desde el menú del navegador (los tres puntos) elige «Instalar aplicación».";
+    btnIns.textContent="📲 Ver cómo instalarla";
+  }
 }
 window.addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); promptInstalar=e; pintarInstalar(); });
+pintarInstalar();
 window.addEventListener("appinstalled",()=>{ promptInstalar=null; cajaIns.hidden=true; sonFinal(); });
 btnIns.onclick=async()=>{
-  if(!promptInstalar) return;
+  if(!promptInstalar){
+    msgIns.innerHTML = esIOS()
+      ? "1. Toca <b>Compartir</b>, el cuadrito con la flecha, abajo en Safari.<br>2. Baja y toca <b>Agregar a pantalla de inicio</b>.<br>3. Confirma con <b>Agregar</b>. Si ya la tenías, bórrala antes y repite."
+      : "1. Toca los <b>tres puntos</b> arriba a la derecha del navegador.<br>2. Elige <b>Instalar aplicación</b> o <b>Agregar a la pantalla de inicio</b>.<br>3. Confirma con <b>Instalar</b>. Si ya la tenías, desinstálala antes y repite.";
+    cajaIns.classList.add("ins-abierta");
+    return;
+  }
   promptInstalar.prompt();
   const r=await promptInstalar.userChoice.catch(()=>null);
   if(r&&r.outcome==="accepted"){ cajaIns.hidden=true; }
